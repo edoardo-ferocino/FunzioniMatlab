@@ -1,8 +1,8 @@
 function [ Data, varargout ] = DatRead3(FileName,varargin)
 %DatRead2('FileName')
 %Can be as input a selection of the following parameters
-%DatRead2(...,'loop4',numloop4,'loop5',numloop5,'datatype','uint32','compilesub',true/false)
-%[Data,Header,EasyReadableHead,SubHeaders,EasyReadableSubHead,UnSqueezedHeader]=DatRead2(...)
+%DatRead3(...,'loop4',numloop4,'loop5',numloop5,'datatype','uint32','compilesub',true/false,'forcereading',true/false)
+%[Data,Header,EasyReadableHead,SubHeaders,EasyReadableSubHead,UnSqueezedHeader]=DatRead3(...)
 
 NumArgOut = nargout-1;
 NumArgin = nargin-1;
