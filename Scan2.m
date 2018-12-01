@@ -1,7 +1,7 @@
 InitScript
-[A,~,CH]=DatRead3('PT_DX0001','ForceReading',true);
+[A,~,CH]=DatRead3('rebecca0001','ForceReading',true);
 [NumY,NumX,NumChan,NumBin]=size(A);
-SETT = TRSread('C:\Temp\TRS.TRS');
+SETT = TRSread('../Settings/TRS');
 % for iy = NumY:-1:1
 %     if(rem(iy,2)==1)
 %         A=flip(A,2);
@@ -56,6 +56,16 @@ for iw = 1:numel(Waves)
     AX.Title.String = num2str(Waves(iw));
     
 end
+figure
+AllChanCopy = AllChan;
+AllChanCopy(AllChanCopy(:)==0)=NaN;
+MeanRows = mean(AllChanCopy,2,'omitnan');
+for ir = 1:NumY
+    plot(1:NumX,repmat(MeanRows(ir),1,NumX)./0.025,1:NumX,AllChanCopy(ir,:)./0.025)
+    title(num2str(ir))
+    pause
+end
+
 return
 for  iy = NumY-1:-1:0
     NewRow = zeros(1,NumX);
