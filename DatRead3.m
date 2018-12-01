@@ -79,26 +79,21 @@ end
 NumLoop=CompiledHeader.LoopNum;
 
 info=dir(FilePath);
-if ForceReading == false
-    if info.bytes ~= (HeadLen + prod(NumLoop)*(nBoard*nDet)*(SubLen+NumBin*2))
-        if info.bytes == (HeadLen + prod(NumLoop)*(nBoard*nDet)*(SubLen+NumBin*4))
-            if ~strcmpi(datatype,'uint32')
-                wardlg('Datasize was ''uint32''. Use the argument ''datatype'' and set it to ''uint32''.');
-            else
-                ForceReading = true;
-            end
-        else
-            if ForceReading==false
-                RemBytes = info.bytes-(HeadLen + prod(NumLoop)*(nBoard*nDet)*(SubLen+NumBin*2));
-                RemLoop = RemBytes/(prod(NumLoop)*(nBoard*nDet)*(SubLen+NumBin*2));
-                CompiledHeader.LoopNum(4) = RemLoop+1; NumLoop(4) = RemLoop+1;
-                NumLoop(5) = 1;
-                warndlg({['For the 4 loop the value ',num2str(NumLoop(4)),' will be used. Loop5 is undefined'],....
-                    'If you want to insert the correct values for loop4 and loop5 launch again the function with that arguments'},'Dimension mismatch','modal')
-            end
-        end
-        if ForceReading == false
+if info.bytes ~= (HeadLen + prod(NumLoop)*(nBoard*nDet)*(SubLen+NumBin*2))
+    if info.bytes == (HeadLen + prod(NumLoop)*(nBoard*nDet)*(SubLen+NumBin*4))
+        if ~strcmpi(datatype,'uint32')
+            wardlg('Datasize was ''uint32''. Use the argument ''datatype'' and set it to ''uint32''.');
             fclose(fid);
+            return
+        end
+    else
+        if ForceReading==false
+            RemBytes = info.bytes-(HeadLen + prod(NumLoop)*(nBoard*nDet)*(SubLen+NumBin*2));
+            RemLoop = RemBytes/(prod(NumLoop)*(nBoard*nDet)*(SubLen+NumBin*2));
+            CompiledHeader.LoopNum(4) = RemLoop+1; NumLoop(4) = RemLoop+1;
+            NumLoop(5) = 1;
+            warndlg({['For the 4 loop the value ',num2str(NumLoop(4)),' will be used. Loop5 is undefined'],....
+                'If you want to insert the correct values for loop4 and loop5 launch again the function with that arguments'},'Dimension mismatch','modal')
         end
     end
 end

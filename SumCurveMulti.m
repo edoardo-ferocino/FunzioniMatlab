@@ -1,10 +1,10 @@
 InitScript
 
 %%
-IRF_FN = 'giulia0014';
-Data_FN = 'giulia0012';
+IRF_FN = 'IRF0000';
+Data_FN = 'rebecca0001';
 is_scan = true;
-SETT = TRSread('./TRS');
+SETT = TRSread('../Settings/TRS');
 [IRF,H,CH,SH,CSH,UnSquezSubs]=DatRead3(IRF_FN,'compilesub',true);
 ndIRF = ndims(IRF);
 if ndIRF == 2
@@ -40,8 +40,8 @@ IRF_Shifted_summed = squeeze(sum(IRF_Shifted,1));
 save('shift.mat','shift');
 
 fid_out = fopen([IRF_FN '_summed.DAT'], 'wb');
-% CH.LoopNum(1) = 1; CH.LoopLast(1) = 1;
-% H=CompileHeader(CH);
+CH.LoopNum(1) = 1; CH.LoopLast(1) = 1;
+H=CompileHeader(CH);
 fwrite(fid_out, H, 'uint8');
 if NumRep
     fwrite(fid_out, SH(1,1,:), 'uint8');
@@ -55,7 +55,7 @@ fclose(fid_out);
 
 
 %%
-[Data,H,CH,SH] = DatRead3(Data_FN,'forcereading',true);
+[Data,H,CH,SH,CSH] = DatRead3(Data_FN,'forcereading',true);
 if is_scan == 1
     [NumY,NumX,NumChan,NumBin]=size(Data);
     Data_Shifted = zeros(NumY,NumX,NumChan,NumBin);
@@ -86,9 +86,9 @@ else
 end
 
 fid_out = fopen([Data_FN '_summed.DAT'], 'wb');
-fwrite(fid_out, H, 'uint8');
 
 if is_scan == 1
+    fwrite(fid_out, H, 'uint8');
     for iy = 1:NumY
         for ix = 1:NumX
             fwrite(fid_out, SH(iy,ix,1,:), 'uint8');
@@ -98,6 +98,9 @@ if is_scan == 1
         warning('\nConversion to long (uint32) required for file: %s', [Data_FN '_summed']);
     end
 else
+    CH.LoopNum(1) = 1; CH.LoopLast(1) = 1;
+    H=CompileHeader(CH);
+    fwrite(fid_out, H, 'uint8');
     fwrite(fid_out, SH(1,:), 'uint8');
     curve=Data_Shifted_Summed;
     fwrite(fid_out, curve, 'uint32');

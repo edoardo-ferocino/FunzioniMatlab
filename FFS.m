@@ -13,6 +13,7 @@ for iv=1:numel(varargin)
     if ishandle(varargin{iv})
         isFH = true;
         FH = varargin{iv};
+        figure(FH);
     end
 end
 if ~isFH, FH=figure(varargin{:}); end
