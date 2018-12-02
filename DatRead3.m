@@ -15,7 +15,7 @@ if isempty(fileparts(FileName))
     FilePath = fullfile(pwd,[FileName,'.DAT']);
 end
 fid=fopen(FilePath,'rb');
-if fid<0, error('File not found'); return; end %#ok<UNRCH>
+if fid<0, errordlg('File not found'); Data = []; return; end %#ok<UNRCH>
 Head=fread(fid,HeadLen,'uint8');
 datatype = 'ushort';
 CompiledHeader = FillHeader(Head);
@@ -61,7 +61,13 @@ for iN = 1:NumArgin
         ForceReading = varargin{iN+1};
     end
 end
-SubRaw=fread(fid,SubLen,'uint8'); CompSub = FillSub(SubRaw); fread(fid,NumBin,datatype);
+if strcmpi(datatype,'uint32')
+    datatry = {'uint32'};
+else
+     datatry = {'ushort','uint32'};
+end
+for itry = 1:numel(datatry)
+SubRaw=fread(fid,SubLen,'uint8'); CompSub = FillSub(SubRaw); fread(fid,NumBin,datatry{itry});
 BuffBoard = CompSub.Board; BuffDet = CompSub.Det; nDet = 1; nBoard = 1;
 out = false;
 while(out==false)
@@ -82,12 +88,13 @@ info=dir(FilePath);
 if info.bytes ~= (HeadLen + prod(NumLoop)*(nBoard*nDet)*(SubLen+NumBin*2))
     if info.bytes == (HeadLen + prod(NumLoop)*(nBoard*nDet)*(SubLen+NumBin*4))
         if ~strcmpi(datatype,'uint32')
-            wardlg('Datasize was ''uint32''. Use the argument ''datatype'' and set it to ''uint32''.');
-            fclose(fid);
-            return
+            datatype = 'uint32';
+            warning('Datasize was ''uint32''. Data will be read. To be sure, use the argument ''datatype'' and set it to ''uint32''');
+            %fclose(fid);
+            %return
         end
     else
-        if ForceReading==false
+        if (ForceReading==false)&&itry==numel(datatry)
             RemBytes = info.bytes-(HeadLen + prod(NumLoop)*(nBoard*nDet)*(SubLen+NumBin*2));
             RemLoop = RemBytes/(prod(NumLoop)*(nBoard*nDet)*(SubLen+NumBin*2));
             CompiledHeader.LoopNum(4) = RemLoop+1; NumLoop(4) = RemLoop+1;
@@ -96,6 +103,11 @@ if info.bytes ~= (HeadLen + prod(NumLoop)*(nBoard*nDet)*(SubLen+NumBin*2))
                 'If you want to insert the correct values for loop4 and loop5 launch again the function with that arguments'},'Dimension mismatch','modal')
         end
     end
+frewind(fid);
+Head=fread(fid,HeadLen,'uint8');
+else
+    break
+end
 end
 fclose(fid);
 
