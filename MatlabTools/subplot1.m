@@ -70,22 +70,22 @@ elseif (nargin>2),
    if (0.5.*Narg==floor(0.5.*Narg)),
 
       for I=1:2:Narg-1,
-         switch varargin{I},
-          case 'Min'
+         switch lower(varargin{I}),
+          case 'min'
  	     Min = varargin{I+1};
-          case 'Max'
+          case 'max'
  	     Max = varargin{I+1};
-          case 'Gap'
+          case 'gap'
  	     Gap = varargin{I+1};
-          case 'XTickL'
+          case 'xtickl'
  	     XTickL = varargin{I+1};
-          case 'YTickL'
+          case 'ytickl'
  	     YTickL = varargin{I+1};
-          case 'FontS'
+          case 'fonts'
  	     FontS = varargin{I+1};
-          case 'XScale'
+          case 'xscale'
  	     XScale = varargin{I+1};
-          case 'YScale'
+          case 'yscale'
  	     YScale = varargin{I+1};
           otherwise
 	     error('Unknown keyword');
@@ -183,29 +183,29 @@ switch MoveFoc
        box on;
        hold on;
 
-       switch XTickL
-        case 'Margin'
+       switch lower(XTickL)
+        case 'margin'
            if (Row~=M),
               %--- erase XTickLabel ---
               set(gca,'XTickLabel',[]);
            end
-        case 'All'
+        case 'all'
            % do nothing
-        case 'None'
+        case 'none'
            set(gca,'XTickLabel',[]);
         otherwise
            error('Unknown XTickL option');
        end
 
-       switch YTickL
-        case 'Margin'
+       switch lower(YTickL)
+        case 'margin'
            if (Col~=1),
               %--- erase YTickLabel ---
               set(gca,'YTickLabel',[]);
            end    
-        case 'All'
+        case 'all'
            % do nothing
-        case 'None'
+        case 'none'
            set(gca,'YTickLabel',[]);
         otherwise
            error('Unknown XTickL option');

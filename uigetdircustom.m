@@ -1,21 +1,21 @@
-function SelPath=uigetdircustom(varargin)
+function PathName=uigetdircustom(varargin)
 AppDataTempPath = getapplicationdatadir(fullfile('\Temp'),false,true);
 TempPath = fullfile(AppDataTempPath,'temppath.mat');
 if exist(TempPath,'file')    % Load the Sim.mat file
-    load(TempPath,'SelPath');
+    load(TempPath,'PathName');
     switch numel(varargin)
         case 0
             Title = 'Select destination folder';
         case 1
             Title = varargin{1};
     end
-    SelPath = uigetdir(SelPath,Title);
+    PathName = uigetdir(PathName,Title);
     
 else
-    SelPath = uigetdir(varargin{:});
+    PathName = uigetdir(varargin{:});
     
 end
-if SelPath == 0, return, end
+if PathName == 0, return, end
 VarArgin = varargin;
 if isempty(VarArgin)
     save(TempPath,'SelPath');

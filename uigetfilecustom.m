@@ -24,5 +24,5 @@ if isempty(VarArgin)
 else
     save(TempPath,'PathName','VarArgin');
 end
-OutputPath= [PathName,FileName];
+
 end

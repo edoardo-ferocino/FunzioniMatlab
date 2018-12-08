@@ -1,4 +1,4 @@
-function hhh=vline(x,in1,in2)
+function hhh=vline(x,in1,in2,varargin)
 % function h=vline(x, linetype, label)
 % 
 % Draws a vertical line on the current axes at the location specified by 'x'.  Optional arguments are
@@ -27,7 +27,12 @@ function hhh=vline(x,in1,in2)
 % By Brandon Kuczenski for Kensington Labs.
 % brandon_kuczenski@kensingtonlabs.com
 % 8 November 2001
-
+percy = 0.1;
+for in = 1:numel(varargin)
+    if strcmpi(varargin{in},'percy')
+        percy = varargin{in+1};
+    end
+end
 if length(x)>1  % vector input
     for I=1:length(x)
         switch nargin
@@ -44,7 +49,7 @@ if length(x)>1  % vector input
                 linetype=in1{I};
             end
             label='';
-        case 3
+        case {3,5}
             if ~iscell(in1)
                 in1={in1};
             end
@@ -72,7 +77,7 @@ else
     case 2
         linetype=in1;
         label='';
-    case 3
+    case {3,5}
         linetype=in1;
         label=in2;
     end
@@ -90,9 +95,9 @@ else
         xrange=xx(2)-xx(1);
         xunit=(x-xx(1))/xrange;
         if xunit<0.8
-            text(x+0.01*xrange,y(1)+0.1*(y(2)-y(1)),label,'color',get(h,'color'))
+            text(x+0.01*xrange,y(1)+percy*(y(2)-y(1)),label,'color',get(h,'color'))
         else
-            text(x-.05*xrange,y(1)+0.1*(y(2)-y(1)),label,'color',get(h,'color'))
+            text(x-.05*xrange,y(1)+percy*(y(2)-y(1)),label,'color',get(h,'color'))
         end
     end     
 
