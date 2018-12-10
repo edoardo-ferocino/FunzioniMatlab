@@ -1,18 +1,20 @@
-function PathName=uigetdircustom(varargin)
+function [FileName,PathName,FilterId]=uiputfilecustom(varargin)
 AppDataTempPath = getapplicationdatadir(fullfile('\Temp'),false,true);
 TempPath = fullfile(AppDataTempPath,'temppath.mat');
 if exist(TempPath,'file')    % Load the Sim.mat file
     load(TempPath,'PathName');
     switch numel(varargin)
         case 0
-            Title = 'Select destination folder';
+            Filter = '*'; Title = 'Choose file'; 
         case 1
-            Title = varargin{1};
+            Filter = varargin{1}; Title = 'Choose file'; 
+        case 2
+            Filter = varargin{1}; Title = varargin{2}; PathName = pwd;
     end
-    PathName = uigetdir(PathName,Title);
+    [FileName,PathName,FilterId] = uiputfile(Filter,Title,PathName);
     
 else
-    PathName = uigetdir(varargin{:});
+    [FileName,PathName,FilterId] = uiputfile(varargin{:});
     
 end
 if PathName == 0, return, end
