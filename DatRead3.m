@@ -1,5 +1,5 @@
 function [ Data, varargout ] = DatRead3(FileName,varargin)
-%DatRead2('FileName')
+%DatRead3('FileName')
 %Can be as input a selection of the following parameters
 %DatRead3(...,'loop4',numloop4,'loop5',numloop5,'datatype','uint32','compilesub',true/false,'forcereading',true/false)
 %[Data,Header,EasyReadableHead,SubHeaders,EasyReadableSubHead,UnSqueezedHeader]=DatRead3(...)
@@ -233,6 +233,17 @@ switch NumArgOut
             varargout{4} = squeeze(CompiledSub);
         end
         varargout{5} = Sub;
+    case 6
+        varargout{1} = Head;
+        varargout{2} = CompiledHeader;
+        varargout{3} = squeeze(Sub);
+        if isCompileSubHeader == false
+            varargout{4} = [];
+        else
+            varargout{4} = squeeze(CompiledSub);
+        end
+        varargout{5} = Sub;
+        varargout{6} = datatype;
 end
 
 end
