@@ -45,6 +45,7 @@ fid_out = fopen([IRF_FN '_summed.DAT'], 'wb');
 if is_sum_rep_irf
     CH.LoopNum(1) = 1; CH.LoopLast(1) = 1;
     H=CompileHeader(CH);
+    NumRep = 1;
 end
 fwrite(fid_out, H, 'uint8');
 for irep = 1:NumRep
@@ -107,6 +108,7 @@ else
     if is_sum_rep_data
         CH.LoopNum(1) = 1; CH.LoopLast(1) = 1;
         H=CompileHeader(CH);
+        NumRep = 1;
     end
     fwrite(fid_out, H, 'uint8');
     for irep = 1:NumRep
@@ -117,4 +119,4 @@ else
 end
 
 fclose(fid_out);
-cd(fileparts([mfilename('fullpath') '.m']))
+%cd(fileparts([mfilename('fullpath') '.m']))
