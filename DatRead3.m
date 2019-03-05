@@ -60,6 +60,12 @@ for iN = 1:NumArgin
     if strcmpi(varargin{iN},'forcereading')
         ForceReading = varargin{iN+1};
     end
+    if strcmpi(varargin{iN},'ndet')
+        nDet = varargin{iN+1};
+    end
+    if strcmpi(varargin{iN},'nboard')
+        nBoard = varargin{iN+1};
+    end
 end
 if strcmpi(datatype,'uint32')
     datatry = {'uint32'};
@@ -83,7 +89,14 @@ for itry = 1:numel(datatry)
     end
     
     NumLoop=CompiledHeader.LoopNum;
-    
+    for iN = 1:NumArgin
+        if strcmpi(varargin{iN},'ndet')
+            nDet = varargin{iN+1};
+        end
+        if strcmpi(varargin{iN},'nboard')
+            nBoard = varargin{iN+1};
+        end
+    end
     info=dir(FilePath);
     if info.bytes ~= (HeadLen + prod(NumLoop)*(nBoard*nDet)*(SubLen+NumBin*2))
         nBoardBuff = nBoard; nDetBuff = nDet;
@@ -110,7 +123,7 @@ for itry = 1:numel(datatry)
                 dims = [1 35];
                 definput = {'ushort/uint32'};
                 answer = inputdlg(prompt,title,dims,definput);
-                datatype = answer{1}; 
+                datatype = answer{1};
                 fclose(fid); fid=fopen(FilePath,'rb');
                 Head=fread(fid,HeadLen,'uint8');
                 SubRaw=fread(fid,SubLen,'uint8'); CompSub = FillSub(SubRaw); fread(fid,NumBin,datatype);

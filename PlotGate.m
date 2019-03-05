@@ -8,7 +8,7 @@ for inr = 1:nW
     cmax = max(Waves(inr).GatedMatrix(:));
     imagesc(Waves(inr).GatedMatrix(:,:,1),[cmin cmax]);
     colormap pink, shading interp, axis image;
-    title(num2str(Waves(inr).Wavelenghts(inr)))
+    title(num2str(Waves(inr).Wavelenghts))
     colorbar('westoutside')
 end
 delete(SubH(inr+1:end))
@@ -53,5 +53,5 @@ cmax = max(Waves(axnum).GatedMatrix(:));
 imagesc(SubH(axnum),Waves(axnum).GatedMatrix(:,:,newVal));
 colormap pink, shading interp, axis image;
 cb = colorbar(SubH(axnum),'westoutside'); cb.Limits = [cmin cmax];
-title(SubH(axnum),[num2str(Waves(axnum).Wavelenghts(axnum)) '.gate ' num2str(newVal) 'of' num2str(Waves(axnum).NumGates)])
+title(SubH(axnum),[num2str(Waves(axnum).Wavelenghts) '.gate ' num2str(newVal) 'of' num2str(Waves(axnum).NumGates)])
 end

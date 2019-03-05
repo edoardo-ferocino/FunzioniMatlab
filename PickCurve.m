@@ -19,8 +19,6 @@ hUndo.Separator = 'on';
         fh = figure(fh);
         [x,y] = ginput(1);
         roi = [round(x) round(y)];
-        roi(1) = find(round(fh.Children.Children.XData) == roi(1));
-        roi(2) = find(round(fh.Children.Children.YData) == roi(2));
         figure(100)
         semilogy(1:numel(Data(roi(2),roi(1),:)),squeeze(Data(roi(2),roi(1),:)))
     end
