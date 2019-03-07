@@ -17,6 +17,9 @@ end
 fid=fopen(FilePath,'rb');
 if fid<0, errordlg('File not found'); Data = []; return; end %#ok<UNRCH>
 Head=fread(fid,HeadLen,'uint8');
+if numel(categories(categorical(Head)))==1
+    warning('Please insert all loop values and nDet, nBoard');
+end
 datatype = 'ushort';
 CompiledHeader = FillHeader(Head);
 SubLen=CompiledHeader.SizeSubHeader;
@@ -60,10 +63,10 @@ for iN = 1:NumArgin
     if strcmpi(varargin{iN},'forcereading')
         ForceReading = varargin{iN+1};
     end
-    if strcmpi(varargin{iN},'ndet')
+    if strcmpi(varargin{iN},'nDet')
         nDet = varargin{iN+1};
     end
-    if strcmpi(varargin{iN},'nboard')
+    if strcmpi(varargin{iN},'nBoard')
         nBoard = varargin{iN+1};
     end
 end
@@ -72,81 +75,83 @@ if strcmpi(datatype,'uint32')
 else
     datatry = {'ushort','uint32'};
 end
-for itry = 1:numel(datatry)
-    SubRaw=fread(fid,SubLen,'uint8'); CompSub = FillSub(SubRaw); fread(fid,NumBin,datatry{itry});
-    BuffBoard = CompSub.Board; BuffDet = CompSub.Det; nDet = 1; nBoard = 1;
-    out = false;
-    while(out==false)
-        SubRaw=fread(fid,SubLen,'uint8');
-        if isempty(SubRaw), break; end
-        CompSub = FillSub(SubRaw); fread(fid,NumBin,datatype);
-        if(BuffBoard == CompSub.Board && BuffDet == CompSub.Det)
-            out = true;
-        else
-            if BuffDet ~= CompSub.Det, nDet = nDet+1; end
-            if BuffBoard ~= CompSub.Board, nBoard = nBoard+1; end
-        end
-    end
-    
-    NumLoop=CompiledHeader.LoopNum;
-    for iN = 1:NumArgin
-        if strcmpi(varargin{iN},'ndet')
-            nDet = varargin{iN+1};
-        end
-        if strcmpi(varargin{iN},'nboard')
-            nBoard = varargin{iN+1};
-        end
-    end
-    info=dir(FilePath);
-    if info.bytes ~= (HeadLen + prod(NumLoop)*(nBoard*nDet)*(SubLen+NumBin*2))
-        nBoardBuff = nBoard; nDetBuff = nDet;
-        if info.bytes == (HeadLen + prod(NumLoop)*(nBoard*nDet)*(SubLen+NumBin*4))
-            if ~strcmpi(datatype,'uint32')
-                datatype = 'uint32';
-                warning('Datasize was ''uint32''. Data will be read. To be sure, use the argument ''datatype'' and set it to ''uint32''');
-                %fclose(fid);
-                %return
+if ~and(exist('nDet','var'),exist('nBoard','var'))
+    for itry = 1:numel(datatry)
+        SubRaw=fread(fid,SubLen,'uint8'); CompSub = FillSub(SubRaw); fread(fid,NumBin,datatry{itry});
+        BuffBoard = CompSub.Board; BuffDet = CompSub.Det; nDet = 1; nBoard = 1;
+        out = false;
+        while(out==false)
+            SubRaw=fread(fid,SubLen,'uint8');
+            if isempty(SubRaw), break; end
+            CompSub = FillSub(SubRaw); fread(fid,NumBin,datatype);
+            if(BuffBoard == CompSub.Board && BuffDet == CompSub.Det)
+                out = true;
+            else
+                if BuffDet ~= CompSub.Det, nDet = nDet+1; end
+                if BuffBoard ~= CompSub.Board, nBoard = nBoard+1; end
             end
-        else
-            if (ForceReading==false)&&itry==numel(datatry)
-                nBoard = nBoardBuff; nDet = nDetBuff; datatype = 'ushort';
-                RemBytes = info.bytes-(HeadLen + prod(NumLoop)*(nBoard*nDet)*(SubLen+NumBin*2));
-                RemLoop = RemBytes/(prod(NumLoop)*(nBoard*nDet)*(SubLen+NumBin*2));
-                CompiledHeader.LoopNum(4) = RemLoop+1; NumLoop(4) = RemLoop+1;
-                NumLoop(5) = 1;
-                warndlg({['For the 4 loop the value ',num2str(NumLoop(4)),' will be used. Loop5 is undefined'],....
-                    'If you want to insert the correct values for loop4 and loop5 launch again the function with that arguments'},'Dimension mismatch','modal')
-            end
-            if (ForceReading==true)&&itry==numel(datatry)
-                prompt = {'Enter datatype'};
-                title = 'Datatype';
-                dims = [1 35];
-                definput = {'ushort/uint32'};
-                answer = inputdlg(prompt,title,dims,definput);
-                datatype = answer{1};
-                fclose(fid); fid=fopen(FilePath,'rb');
-                Head=fread(fid,HeadLen,'uint8');
-                SubRaw=fread(fid,SubLen,'uint8'); CompSub = FillSub(SubRaw); fread(fid,NumBin,datatype);
-                BuffBoard = CompSub.Board; BuffDet = CompSub.Det; nDet = 1; nBoard = 1;
-                out = false;
-                while(out==false)
-                    SubRaw=fread(fid,SubLen,'uint8');
-                    if isempty(SubRaw), break; end
-                    CompSub = FillSub(SubRaw); fread(fid,NumBin,datatype);
-                    if(BuffBoard == CompSub.Board && BuffDet == CompSub.Det)
-                        out = true;
-                    else
-                        if BuffDet ~= CompSub.Det, nDet = nDet+1; end
-                        if BuffBoard ~= CompSub.Board, nBoard = nBoard+1; end
-                    end
+        end
+        
+        NumLoop=CompiledHeader.LoopNum;
+        for iN = 1:NumArgin
+        	if strcmpi(varargin{iN},'ndet')
+            	nDet = varargin{iN+1};
+        	end
+        	if strcmpi(varargin{iN},'nboard')
+            	nBoard = varargin{iN+1};
+        	end
+    	end
+        info=dir(FilePath);
+        if info.bytes ~= (HeadLen + prod(NumLoop)*(nBoard*nDet)*(SubLen+NumBin*2))
+            nBoardBuff = nBoard; nDetBuff = nDet;
+            if info.bytes == (HeadLen + prod(NumLoop)*(nBoard*nDet)*(SubLen+NumBin*4))
+                if ~strcmpi(datatype,'uint32')
+                    datatype = 'uint32';
+                    warning('Datasize was ''uint32''. Data will be read. To be sure, use the argument ''datatype'' and set it to ''uint32''');
+                    %fclose(fid);
+                    %return
                 end
-                NumLoop=CompiledHeader.LoopNum;
+            else
+                if (ForceReading==false)&&itry==numel(datatry)
+                    nBoard = nBoardBuff; nDet = nDetBuff; datatype = 'ushort';
+                    RemBytes = info.bytes-(HeadLen + prod(NumLoop)*(nBoard*nDet)*(SubLen+NumBin*2));
+                    RemLoop = RemBytes/(prod(NumLoop)*(nBoard*nDet)*(SubLen+NumBin*2));
+                    CompiledHeader.LoopNum(4) = RemLoop+1; NumLoop(4) = RemLoop+1;
+                    NumLoop(5) = 1;
+                    warndlg({['For the 4 loop the value ',num2str(NumLoop(4)),' will be used. Loop5 is undefined'],....
+                        'If you want to insert the correct values for loop4 and loop5 launch again the function with that arguments'},'Dimension mismatch','modal')
+                end
+                if (ForceReading==true)&&itry==numel(datatry)
+                    prompt = {'Enter datatype'};
+                    title = 'Datatype';
+                    dims = [1 35];
+                    definput = {'ushort/uint32'};
+                    answer = inputdlg(prompt,title,dims,definput);
+                    datatype = answer{1};
+                    fclose(fid); fid=fopen(FilePath,'rb');
+                    Head=fread(fid,HeadLen,'uint8');
+                    SubRaw=fread(fid,SubLen,'uint8'); CompSub = FillSub(SubRaw); fread(fid,NumBin,datatype);
+                    BuffBoard = CompSub.Board; BuffDet = CompSub.Det; nDet = 1; nBoard = 1;
+                    out = false;
+                    while(out==false)
+                        SubRaw=fread(fid,SubLen,'uint8');
+                        if isempty(SubRaw), break; end
+                        CompSub = FillSub(SubRaw); fread(fid,NumBin,datatype);
+                        if(BuffBoard == CompSub.Board && BuffDet == CompSub.Det)
+                            out = true;
+                        else
+                            if BuffDet ~= CompSub.Det, nDet = nDet+1; end
+                            if BuffBoard ~= CompSub.Board, nBoard = nBoard+1; end
+                        end
+                    end
+                    NumLoop=CompiledHeader.LoopNum;
+                end
             end
+            frewind(fid);
+            Head=fread(fid,HeadLen,'uint8');
+        else
+            break
         end
-        frewind(fid);
-        Head=fread(fid,HeadLen,'uint8');
-    else
-        break
     end
 end
 fclose(fid);
