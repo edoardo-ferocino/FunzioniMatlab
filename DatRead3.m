@@ -94,13 +94,13 @@ if ~and(exist('nDet','var'),exist('nBoard','var'))
         
         NumLoop=CompiledHeader.LoopNum;
         for iN = 1:NumArgin
-        	if strcmpi(varargin{iN},'ndet')
-            	nDet = varargin{iN+1};
-        	end
-        	if strcmpi(varargin{iN},'nboard')
-            	nBoard = varargin{iN+1};
-        	end
-    	end
+            if strcmpi(varargin{iN},'ndet')
+                nDet = varargin{iN+1};
+            end
+            if strcmpi(varargin{iN},'nboard')
+                nBoard = varargin{iN+1};
+            end
+        end
         info=dir(FilePath);
         if info.bytes ~= (HeadLen + prod(NumLoop)*(nBoard*nDet)*(SubLen+NumBin*2))
             nBoardBuff = nBoard; nDetBuff = nDet;
@@ -122,12 +122,13 @@ if ~and(exist('nDet','var'),exist('nBoard','var'))
                         'If you want to insert the correct values for loop4 and loop5 launch again the function with that arguments'},'Dimension mismatch','modal')
                 end
                 if (ForceReading==true)&&itry==numel(datatry)
-                    prompt = {'Enter datatype'};
-                    title = 'Datatype';
-                    dims = [1 35];
-                    definput = {'ushort/uint32'};
-                    answer = inputdlg(prompt,title,dims,definput);
-                    datatype = answer{1};
+                    fh = figure('NumberTitle','off','Name','Choose type','Toolbar','none','menubar','none','HandleVisibility','off','Units','normalized','Position',[0.5 0.5 0.1 0.1]);%,'Position',[0.5 0.5 0.3 0.3]);
+                    movegui(fh,'center');
+                    uph = uipanel(fh,'Title','Choose type','units','normalized','position',[0 0 1 1]);
+                    uicontrol(uph,'style','radiobutton','String','ushort','units','normalized','position',[0 0 0.4 0.5],'Callback','assignin(''caller'',''datatype'',''ushort'')');
+                    uicontrol(uph,'style','radiobutton','String','uint32','units','normalized','position',[0 0.5 0.4 0.5],'Callback','assignin(''caller'',''datatype'',''uint32'')');
+                    uicontrol(uph,'style','pushbutton','String','Ok','units','normalized','position',[0.5 0 0.4 0.5]);
+                    waitfor(fh);
                     fclose(fid); fid=fopen(FilePath,'rb');
                     Head=fread(fid,HeadLen,'uint8');
                     SubRaw=fread(fid,SubLen,'uint8'); CompSub = FillSub(SubRaw); fread(fid,NumBin,datatype);
