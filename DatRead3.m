@@ -23,6 +23,11 @@ end
 datatype = 'ushort';
 CompiledHeader = FillHeader(Head);
 SubLen=CompiledHeader.SizeSubHeader;
+if SubLen == 0
+    SkipSub = true;
+else
+    SkipSub = false;
+end
 NumBin = CompiledHeader.McaChannNum;
 CompiledHeader.LoopNum(4) = 1; CompiledHeader.LoopNum(5) = 1;
 CompiledHeader.LoopFirst(4) = 0; CompiledHeader.LoopFirst(5) = 0;
@@ -75,7 +80,7 @@ if strcmpi(datatype,'uint32')
 else
     datatry = {'ushort','uint32'};
 end
-if ~and(exist('nDet','var'),exist('nBoard','var'))
+if ~and(exist('nDet','var'),exist('nBoard','var')) && SkipSub==0
     for itry = 1:numel(datatry)
         SubRaw=fread(fid,SubLen,'uint8'); CompSub = FillSub(SubRaw); fread(fid,NumBin,datatry{itry});
         BuffBoard = CompSub.Board; BuffDet = CompSub.Det; nDet = 1; nBoard = 1;
@@ -156,7 +161,10 @@ if ~and(exist('nDet','var'),exist('nBoard','var'))
     end
 end
 fclose(fid);
-
+if SkipSub
+    NumLoop=CompiledHeader.LoopNum;
+    nBoard = 1; nDet = 1;
+end
 
 fid=fopen(FilePath,'rb');
 Head=fread(fid,HeadLen,'uint8');
@@ -172,25 +180,29 @@ try
                     for il1=1:NumLoop(1)
                         for iB = 1:nBoard
                             for iD = 1: nDet
-                                TrashSub = fread(fid,SubLen,'uint8');
-                                if ~isempty(TrashSub)
-                                    Sub(il5,il4,il3,il2,il1,iB,iD,:)=TrashSub;
+                                if SkipSub==0
+                                    TrashSub = fread(fid,SubLen,'uint8');
+                                    if ~isempty(TrashSub)
+                                        Sub(il5,il4,il3,il2,il1,iB,iD,:)=TrashSub;
+                                    else
+                                        warning('backtrace','off')
+                                        warning('Reading interrupted at:');
+                                        warning(strcat('Loop5: ',num2str(il5),'/',num2str(NumLoop(5))));
+                                        warning(strcat('Loop4: ',num2str(il4),'/',num2str(NumLoop(4))));
+                                        warning(strcat('Loop3: ',num2str(il3),'/',num2str(NumLoop(3))));
+                                        warning(strcat('Loop2: ',num2str(il2),'/',num2str(NumLoop(2))));
+                                        warning(strcat('Loop1: ',num2str(il1),'/',num2str(NumLoop(1))));
+                                        warning(strcat('NumBoard: ',num2str(iB),'/',num2str(nBoard)));
+                                        warning(strcat('NumDet: ',num2str(iD),'/',num2str(nDet)));
+                                        warning('Output data will have the dimension specified in TRS settings (Header)');
+                                        warning('backtrace','on')
+                                        break;
+                                    end
+                                    if (isCompileSubHeader)
+                                        CompiledSub(il5,il4,il3,il2,il1,iB,iD) = FillSub(squeeze(Sub(il5,il4,il3,il2,il1,iB,iD,:)));
+                                    end
                                 else
-                                    warning('backtrace','off')
-                                    warning('Reading interrupted at:');
-                                    warning(strcat('Loop5: ',num2str(il5),'/',num2str(NumLoop(5))));
-                                    warning(strcat('Loop4: ',num2str(il4),'/',num2str(NumLoop(4))));
-                                    warning(strcat('Loop3: ',num2str(il3),'/',num2str(NumLoop(3))));
-                                    warning(strcat('Loop2: ',num2str(il2),'/',num2str(NumLoop(2))));
-                                    warning(strcat('Loop1: ',num2str(il1),'/',num2str(NumLoop(1))));
-                                    warning(strcat('NumBoard: ',num2str(iB),'/',num2str(nBoard)));
-                                    warning(strcat('NumDet: ',num2str(iD),'/',num2str(nDet)));
-                                    warning('Output data will have the dimension specified in TRS settings (Header)');
-                                    warning('backtrace','on')
-                                    break;
-                                end
-                                if (isCompileSubHeader)
-                                    CompiledSub(il5,il4,il3,il2,il1,iB,iD) = FillSub(squeeze(Sub(il5,il4,il3,il2,il1,iB,iD,:)));
+                                   TrashSub = 0; 
                                 end
                                 A(il5,il4,il3,il2,il1,iB,iD,:)=fread(fid,NumBin,datatype);
                             end
