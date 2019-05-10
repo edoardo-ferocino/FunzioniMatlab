@@ -6,30 +6,95 @@ function [ Data, varargout ] = DatRead3(FileName,varargin)
 
 NumArgOut = nargout-1;
 NumArgin = nargin-1;
-sumloop = 0; ForceReading = false;
-
+sumloop = 0;
+ForceReading = false;
 isCompileSubHeader = false;
 HeadLen=764;
+datatype = 'ushort';
+nBoard = 1; nDet=1;
+loop5=1;loop4=1;
+ismandatoryarg = zeros(8,1);
+isdatatypeargin=0;
+
 FilePath = [FileName '.DAT'];
 if isempty(fileparts(FileName))
     FilePath = fullfile(pwd,[FileName,'.DAT']);
 end
 fid=fopen(FilePath,'rb');
-if fid<0, errordlg('File not found'); Data = []; return; end %#ok<UNRCH>
-Head=fread(fid,HeadLen,'uint8');
-if numel(categories(categorical(Head)))==1
-    warning('Please insert all loop values and nDet, nBoard');
+if fid<0, errordlg('File not found'); Data = []; return; end
+
+for iN = 1:NumArgin
+    if strcmpi(varargin{iN},'loop5')
+        loop5 = varargin{iN+1};
+        ismandatoryarg(1)=1;
+    end
+    if strcmpi(varargin{iN},'loop4')
+        loop4 = varargin{iN+1};
+        ismandatoryarg(2)=1;
+    end
+    if strcmpi(varargin{iN},'loop3')
+        CompiledHeader.LoopNum(3) = varargin{iN+1};
+        ismandatoryarg(3)=1;
+    end
+    if strcmpi(varargin{iN},'loop2')
+        CompiledHeader.LoopNum(2) = varargin{iN+1};
+        ismandatoryarg(4)=1;
+    end
+    if strcmpi(varargin{iN},'loop1')
+        CompiledHeader.LoopNum(1) = varargin{iN+1};
+        ismandatoryarg(5)=1;
+    end
+    if strcmpi(varargin{iN},'datatype')
+        datatype = varargin{iN+1};
+    end
+    if strcmpi(varargin{iN},'compilesub')
+        isCompileSubHeader = varargin{iN+1};
+    end
+    if strcmpi(varargin{iN},'sumoverloop')
+        sumloop = varargin{iN+1};
+    end
+    if strcmpi(varargin{iN},'forcereading')
+        if(ischar(varargin{iN+1})||isstring(varargin{iN+1}))
+            varargin{iN+1}=string2boolean(varargin{iN+1});
+        end
+        ForceReading = logical(varargin{iN+1});
+    end
+    if strcmpi(varargin{iN},'nDet')
+        nDet = varargin{iN+1};
+        ismandatoryarg(6)=1;
+    end
+    if strcmpi(varargin{iN},'nBoard')
+        nBoard = varargin{iN+1};
+        ismandatoryarg(7)=1;
+    end
+    if strcmpi(varargin{iN},'nBin')
+        nBin = varargin{iN+1};
+        ismandatoryarg(8)=1;
+    end
 end
-datatype = 'ushort';
+
+
+
+Head=fread(fid,HeadLen,'uint8');
+if (numel(categories(categorical(Head)))==1||sum(Head)==0)&&sum(ismandatoryarg)~=8
+    errordlg('Please insert all loop values and nDet, nBoard, nBin'); Data = [];
+    return;
+end
+
 CompiledHeader = FillHeader(Head);
 SubLen=CompiledHeader.SizeSubHeader;
 if SubLen == 0
     SkipSub = true;
+    if(~all(ismandatory([6 7])))
+        errordlg('Please insert nDet and nBoard, nBin'); Data = [];
+    end
+    return;
 else
     SkipSub = false;
 end
-NumBin = CompiledHeader.McaChannNum;
-CompiledHeader.LoopNum(4) = 1; CompiledHeader.LoopNum(5) = 1;
+nBin = CompiledHeader.McaChannNum;
+datasize = CompiledHeader.SizeData;
+CompiledHeader.LoopNum(4) = loop4; CompiledHeader.LoopNum(5) = loop5;
 CompiledHeader.LoopFirst(4) = 0; CompiledHeader.LoopFirst(5) = 0;
 CompiledHeader.LoopLast(4) = 0; CompiledHeader.LoopLast(5) = 0;
 CompiledHeader.LoopDelta(4) = 1; CompiledHeader.LoopDelta(5) = 1;
@@ -43,21 +108,35 @@ CompiledHeader.LoopHome(1:3)=flip(CompiledHeader.LoopHome(1:3));
 for iN = 1:NumArgin
     if strcmpi(varargin{iN},'loop5')
         CompiledHeader.LoopNum(5) = varargin{iN+1};
+        ismandatoryarg(1)=1;
     end
     if strcmpi(varargin{iN},'loop4')
         CompiledHeader.LoopNum(4) = varargin{iN+1};
+        ismandatoryarg(2)=1;
     end
     if strcmpi(varargin{iN},'loop3')
         CompiledHeader.LoopNum(3) = varargin{iN+1};
+        ismandatoryarg(3)=1;
     end
     if strcmpi(varargin{iN},'loop2')
         CompiledHeader.LoopNum(2) = varargin{iN+1};
+        ismandatoryarg(4)=1;
     end
     if strcmpi(varargin{iN},'loop1')
         CompiledHeader.LoopNum(1) = varargin{iN+1};
+        ismandatoryarg(5)=1;
     end
     if strcmpi(varargin{iN},'datatype')
         datatype = varargin{iN+1};
+        switch datatype
+            case 'ushort'
+                datasize = 2;
+            case 'uint32'
+                datasize = 4;
+            case 'double'
+                datasize = 8;
+        end
+        isdatatypeargin=1;
     end
     if strcmpi(varargin{iN},'compilesub')
         isCompileSubHeader = varargin{iN+1};
@@ -66,29 +145,41 @@ for iN = 1:NumArgin
         sumloop = varargin{iN+1};
     end
     if strcmpi(varargin{iN},'forcereading')
-        ForceReading = varargin{iN+1};
+        if(ischar(varargin{iN+1})||isstring(varargin{iN+1}))
+            varargin{iN+1}=string2boolean(varargin{iN+1});
+        end
+        ForceReading = logical(varargin{iN+1});
     end
     if strcmpi(varargin{iN},'nDet')
         nDet = varargin{iN+1};
+        ismandatoryarg(6)=1;
     end
     if strcmpi(varargin{iN},'nBoard')
         nBoard = varargin{iN+1};
+        ismandatoryarg(7)=1;
+    end
+    if strcmpi(varargin{iN},'nBin')
+        nBin = varargin{iN+1};
+        ismandatoryarg(8)=1;
     end
 end
-if strcmpi(datatype,'uint32')
-    datatry = {'uint32'};
+if(~isdatatypeargin)
+    datatry = {'ushort','uint32','double'};
+    
 else
-    datatry = {'ushort','uint32'};
+    datatry={datatype};
 end
-if ~and(exist('nDet','var'),exist('nBoard','var')) && SkipSub==0
+if ~all(ismandatoryarg([6 7])) && SkipSub==0
     for itry = 1:numel(datatry)
-        SubRaw=fread(fid,SubLen,'uint8'); CompSub = FillSub(SubRaw); fread(fid,NumBin,datatry{itry});
+        frewind(fid);
+        fread(fid,HeadLen,'uint8');
+        SubRaw=fread(fid,SubLen,'uint8'); CompSub = FillSub(SubRaw); fread(fid,nBin,datatry{itry});
         BuffBoard = CompSub.Board; BuffDet = CompSub.Det; nDet = 1; nBoard = 1;
         out = false;
         while(out==false)
             SubRaw=fread(fid,SubLen,'uint8');
             if isempty(SubRaw), break; end
-            CompSub = FillSub(SubRaw); fread(fid,NumBin,datatype);
+            CompSub = FillSub(SubRaw); fread(fid,nBin,datatry{itry});
             if(BuffBoard == CompSub.Board && BuffDet == CompSub.Det)
                 out = true;
             else
@@ -96,80 +187,67 @@ if ~and(exist('nDet','var'),exist('nBoard','var')) && SkipSub==0
                 if BuffBoard ~= CompSub.Board, nBoard = nBoard+1; end
             end
         end
-        
         NumLoop=CompiledHeader.LoopNum;
-        for iN = 1:NumArgin
-            if strcmpi(varargin{iN},'ndet')
-                nDet = varargin{iN+1};
-            end
-            if strcmpi(varargin{iN},'nboard')
-                nBoard = varargin{iN+1};
-            end
-        end
         info=dir(FilePath);
-        if info.bytes ~= (HeadLen + prod(NumLoop)*(nBoard*nDet)*(SubLen+NumBin*2))
-            nBoardBuff = nBoard; nDetBuff = nDet;
-            if info.bytes == (HeadLen + prod(NumLoop)*(nBoard*nDet)*(SubLen+NumBin*4))
-                if ~strcmpi(datatype,'uint32')
-                    datatype = 'uint32';
-                    warning('Datasize was ''uint32''. Data will be read. To be sure, use the argument ''datatype'' and set it to ''uint32''');
-                    %fclose(fid);
-                    %return
-                end
-            else
-                if (ForceReading==false)&&itry==numel(datatry)
-                    nBoard = nBoardBuff; nDet = nDetBuff; datatype = 'ushort';
-                    RemBytes = info.bytes-(HeadLen + prod(NumLoop)*(nBoard*nDet)*(SubLen+NumBin*2));
-                    RemLoop = RemBytes/(prod(NumLoop)*(nBoard*nDet)*(SubLen+NumBin*2));
-                    CompiledHeader.LoopNum(4) = RemLoop+1; NumLoop(4) = RemLoop+1;
-                    NumLoop(5) = 1;
-                    warndlg({['For the 4 loop the value ',num2str(NumLoop(4)),' will be used. Loop5 is undefined'],....
-                        'If you want to insert the correct values for loop4 and loop5 launch again the function with that arguments'},'Dimension mismatch','modal')
-                end
-                if (ForceReading==true)&&itry==numel(datatry)
-                    fh = figure('NumberTitle','off','Name','Choose type','Toolbar','none','menubar','none','HandleVisibility','off','Units','normalized','Position',[0.5 0.5 0.1 0.1]);%,'Position',[0.5 0.5 0.3 0.3]);
-                    movegui(fh,'center');
-                    uph = uipanel(fh,'Title','Choose type','units','normalized','position',[0 0 1 1]);
-                    uicontrol(uph,'style','radiobutton','String','ushort','units','normalized','position',[0 0 0.4 0.5],'Callback','assignin(''caller'',''datatype'',''ushort'')');
-                    uicontrol(uph,'style','radiobutton','String','uint32','units','normalized','position',[0 0.5 0.4 0.5],'Callback','assignin(''caller'',''datatype'',''uint32'')');
-                    uicontrol(uph,'style','pushbutton','String','Ok','units','normalized','position',[0.5 0 0.4 0.5]);
-                    waitfor(fh);
-                    fclose(fid); fid=fopen(FilePath,'rb');
-                    Head=fread(fid,HeadLen,'uint8');
-                    SubRaw=fread(fid,SubLen,'uint8'); CompSub = FillSub(SubRaw); fread(fid,NumBin,datatype);
-                    BuffBoard = CompSub.Board; BuffDet = CompSub.Det; nDet = 1; nBoard = 1;
-                    out = false;
-                    while(out==false)
-                        SubRaw=fread(fid,SubLen,'uint8');
-                        if isempty(SubRaw), break; end
-                        CompSub = FillSub(SubRaw); fread(fid,NumBin,datatype);
-                        if(BuffBoard == CompSub.Board && BuffDet == CompSub.Det)
-                            out = true;
-                        else
-                            if BuffDet ~= CompSub.Det, nDet = nDet+1; end
-                            if BuffBoard ~= CompSub.Board, nBoard = nBoard+1; end
-                        end
-                    end
-                    NumLoop=CompiledHeader.LoopNum;
+        datatype = datatry{itry};
+        if info.bytes == (HeadLen + prod(NumLoop)*(nBoard*nDet)*(SubLen+nBin*2))
+            break;
+        end
+        if info.bytes == (HeadLen + prod(NumLoop)*(nBoard*nDet)*(SubLen+nBin*4))
+            break;
+        end
+        if info.bytes == (HeadLen + prod(NumLoop)*(nBoard*nDet)*(SubLen+nBin*8))
+            break;
+        end
+        if(ForceReading==true&&isdatatypeargin)
+            break;
+        end
+        if (ForceReading==false)&&itry==numel(datatry)
+            errordlg('Can''t handle sizemismatch. Insert more argin'); Data = [];
+            fclose(fid);
+            return;
+        end
+        if (ForceReading==true)&&itry==numel(datatry)
+            fh = figure('NumberTitle','off','Name','Choose type','Toolbar','none','menubar','none','HandleVisibility','off','Units','normalized','Position',[0.5 0.5 0.1 0.1]);
+            movegui(fh,'center');
+            uph = uipanel(fh,'Title','Choose type','units','normalized','position',[0 0 1 1]);
+            uicontrol(uph,'style','radiobutton','String','ushort','units','normalized','position',[0 0 0.4 0.5],'Callback','datatype=''ushort'';');
+            uicontrol(uph,'style','radiobutton','String','uint32','units','normalized','position',[0 0.5 0.4 0.5],'Callback','datatype=''uint32'';');
+			uicontrol(uph,'style','radiobutton','String','double','units','normalized','position',[0 0.5 0.4 0.5],'Callback','datatype=''double'';');
+            waitfor(fh);
+            
+            fclose(fid); 
+            fid=fopen(FilePath,'rb');
+            fread(fid,HeadLen,'uint8');
+            SubRaw=fread(fid,SubLen,'uint8'); CompSub = FillSub(SubRaw); fread(fid,nBin,datatype);
+            BuffBoard = CompSub.Board; BuffDet = CompSub.Det; nDet = 1; nBoard = 1;
+            out = false;
+            while(out==false)
+                SubRaw=fread(fid,SubLen,'uint8');
+                if isempty(SubRaw), break; end
+                CompSub = FillSub(SubRaw); fread(fid,nBin,datatype);
+                if(BuffBoard == CompSub.Board && BuffDet == CompSub.Det)
+                    out = true;
+                else
+                    if BuffDet ~= CompSub.Det, nDet = nDet+1; end
+                    if BuffBoard ~= CompSub.Board, nBoard = nBoard+1; end
                 end
             end
-            frewind(fid);
-            Head=fread(fid,HeadLen,'uint8');
-        else
-            break
         end
     end
+        
+    
+ 
 end
 fclose(fid);
-if SkipSub
-    NumLoop=CompiledHeader.LoopNum;
-    nBoard = 1; nDet = 1;
-end
+NumLoop=CompiledHeader.LoopNum;
+CompiledHeader.NumBoard = nBoard;
+CompiledHeader.NumDet = nDet;
 
 fid=fopen(FilePath,'rb');
 Head=fread(fid,HeadLen,'uint8');
 
-A=zeros(NumLoop(5),NumLoop(4),NumLoop(3),NumLoop(2),NumLoop(1),nBoard,nDet,NumBin);
+A=zeros(NumLoop(5),NumLoop(4),NumLoop(3),NumLoop(2),NumLoop(1),nBoard,nDet,nBin);
 Sub=zeros(NumLoop(5),NumLoop(4),NumLoop(3),NumLoop(2),NumLoop(1),nBoard,nDet,SubLen);
 %CompiledSub = zeros(NumLoop(5),NumLoop(4),NumLoop(3),NumLoop(2),NumLoop(1));
 try
@@ -202,9 +280,9 @@ try
                                         CompiledSub(il5,il4,il3,il2,il1,iB,iD) = FillSub(squeeze(Sub(il5,il4,il3,il2,il1,iB,iD,:)));
                                     end
                                 else
-                                   TrashSub = 0; 
+                                    TrashSub = 0;
                                 end
-                                A(il5,il4,il3,il2,il1,iB,iD,:)=fread(fid,NumBin,datatype);
+                                A(il5,il4,il3,il2,il1,iB,iD,:)=fread(fid,nBin,datatype);
                             end
                             if isempty(TrashSub), break; end
                         end
@@ -217,13 +295,6 @@ try
             if isempty(TrashSub), break; end
         end
         if isempty(TrashSub), break; end
-    end
-    
-    CompiledHeader.NumBoard = nBoard;
-    CompiledHeader.NumDet = nDet;
-    
-    if sumloop
-        A=sum(squeeze(A),sumloop);
     end
     
     fclose(fid);
@@ -441,4 +512,11 @@ while iS<=length(Head)
     iF = iF +1;
 end
 
+end
+function [output]=string2boolean(string)
+if strcmp(string,'false')
+    output = false;
+else
+    output = true;
+end
 end
