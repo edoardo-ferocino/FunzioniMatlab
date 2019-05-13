@@ -191,12 +191,15 @@ if ~all(ismandatoryarg([6 7])) && SkipSub==0
         info=dir(FilePath);
         datatype = datatry{itry};
         if info.bytes == (HeadLen + prod(NumLoop)*(nBoard*nDet)*(SubLen+nBin*2))
+            datasize = 4;
             break;
         end
         if info.bytes == (HeadLen + prod(NumLoop)*(nBoard*nDet)*(SubLen+nBin*4))
+            datasize = 4;
             break;
         end
         if info.bytes == (HeadLen + prod(NumLoop)*(nBoard*nDet)*(SubLen+nBin*8))
+            datasize = 8;
             break;
         end
         if(ForceReading==true&&isdatatypeargin)
@@ -211,12 +214,13 @@ if ~all(ismandatoryarg([6 7])) && SkipSub==0
             fh = figure('NumberTitle','off','Name','Choose type','Toolbar','none','menubar','none','HandleVisibility','off','Units','normalized','Position',[0.5 0.5 0.1 0.1]);
             movegui(fh,'center');
             uph = uipanel(fh,'Title','Choose type','units','normalized','position',[0 0 1 1]);
-            uicontrol(uph,'style','radiobutton','String','ushort','units','normalized','position',[0 0 0.4 0.5],'Callback','datatype=''ushort'';');
-            uicontrol(uph,'style','radiobutton','String','uint32','units','normalized','position',[0 0.5 0.4 0.5],'Callback','datatype=''uint32'';');
-			uicontrol(uph,'style','radiobutton','String','double','units','normalized','position',[0 0.5 0.4 0.5],'Callback','datatype=''double'';');
+            uicontrol(uph,'style','radiobutton','String','ushort','units','normalized','position',[0 1/3 0.4 0.5],'Callback','datatype=''ushort'';');
+            uicontrol(uph,'style','radiobutton','String','uint32','units','normalized','position',[0 2/3 0.4 0.5],'Callback','datatype=''uint32'';');
+            uicontrol(uph,'style','radiobutton','String','double','units','normalized','position',[0 1 0.4 0.5],'Callback','datatype=''double'';');
+            %uicontrol(uph,'style','pushbutton','String','Ok','units','normalized','position',[0.5 0 0.4 0.5]);
             waitfor(fh);
             
-            fclose(fid); 
+            fclose(fid);
             fid=fopen(FilePath,'rb');
             fread(fid,HeadLen,'uint8');
             SubRaw=fread(fid,SubLen,'uint8'); CompSub = FillSub(SubRaw); fread(fid,nBin,datatype);
@@ -235,9 +239,9 @@ if ~all(ismandatoryarg([6 7])) && SkipSub==0
             end
         end
     end
-        
     
- 
+    
+    
 end
 fclose(fid);
 NumLoop=CompiledHeader.LoopNum;
@@ -345,7 +349,19 @@ switch NumArgOut
             varargout{4} = squeeze(CompiledSub);
         end
         varargout{5} = Sub;
-        varargout{6} = datatype;
+        varargout{6} = datasize;
+    case 7
+        varargout{1} = Head;
+        varargout{2} = CompiledHeader;
+        varargout{3} = squeeze(Sub);
+        if isCompileSubHeader == false
+            varargout{4} = [];
+        else
+            varargout{4} = squeeze(CompiledSub);
+        end
+        varargout{5} = Sub;
+        varargout{6} = datasize;
+        varargout{7} = datatype;
 end
 
 end
