@@ -1,7 +1,7 @@
 function [Width, varargout]=CalcWidth(Data,Level)
 %[Width,Baricentre,MaxPos,MaxVal]=CalcWidth(Data,Level);
 %Level is percentage from base of the pulse
-
+Data = squeeze(Data);
 NumChan=length(Data);
 [Peak,IndexPeak]=max(Data);
 DataNorm=Data/Peak;
