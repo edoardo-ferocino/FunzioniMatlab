@@ -17,13 +17,14 @@ m_loop5 = 1;m_loop4 = 2;m_loop3 = 3;m_loop2 = 4;m_loop1 = 5;
 m_nsource = 6;m_ndet = 7;m_nboard = 8;m_nbin = 9;
 isdatatypeargin=0;
 
-FilePath = [FileName '.DAT'];
-if isempty(fileparts(FileName))
-    FilePath = fullfile(pwd,[FileName,'.DAT']);
+if isfile(FileName)
+   FilePath = FileName; 
+else
+    FilePath = [FileName '.DAT'];
 end
-fid=fopen(FilePath,'rb');
-if fid<0, errordlg('File not found'); Data = []; return; end
+if ~isfile(FilePath), errordlg('File not found'); Data = []; return; end
 
+fid=fopen(FilePath,'rb');
 for iN = 1:NumArgin
     if strcmpi(varargin{iN},'loop5')
         loop5 = varargin{iN+1};
@@ -179,7 +180,16 @@ if ~all(ismandatoryarg([m_nboard m_ndet m_nsource])) && SkipSub==0
         while(out==false)
             SubRaw=fread(fid,SubLen,'uint8');
             if isempty(SubRaw), break; end
-            CompSub = FillSub(SubRaw); fread(fid,nBin,datatry{itry});
+            try
+                CompSub = FillSub(SubRaw);
+            catch ME
+               if strcmpi(ME.identifier,'MATLAB:badsubscript')
+                   out = true;
+               else
+                   rethrow(ME);
+               end
+            end
+            fread(fid,nBin,datatry{itry});
             ActParms = [CompSub.Source CompSub.Det CompSub.Board];
             if(isequal(BuffParms,ActParms))
                 out = true;
