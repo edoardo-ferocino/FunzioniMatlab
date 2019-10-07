@@ -10,7 +10,7 @@ ForceReading = false;
 isCompileSubHeader = false;
 HeadLen=764;
 datatype = 'ushort';
-nBoard = 1; nDet=1;
+nBoard = 1; nDet=1; nSource = 1;
 loop5=1;loop4=1;
 ismandatoryarg = zeros(8,1);
 m_loop5 = 1;m_loop4 = 2;m_loop3 = 3;m_loop2 = 4;m_loop1 = 5;
@@ -28,7 +28,6 @@ else
 end
 if ~isfile(FilePath), errordlg('File not found'); Data = []; return; end
 
-fid=fopen(FilePath,'rb');
 for iN = 1:NumArgin
     if strcmpi(varargin{iN},'loop5')
         loop5 = varargin{iN+1};
@@ -79,10 +78,18 @@ for iN = 1:NumArgin
         ismandatoryarg(m_nbin)=1;
     end
 end
+if any(ismandatoryarg([m_nboard m_ndet m_nsource]))
+    if sum(ismandatoryarg([m_nboard m_ndet m_nsource]))~=numel(ismandatoryarg([m_nboard m_ndet m_nsource]))
+        errordlg('Please insert nDet, nSource, nBoard'); Data = [];
+        return;
+    end
+end
 
+fid=fopen(FilePath,'rb');
 Head=fread(fid,HeadLen,'uint8');
 if (numel(categories(categorical(Head)))==1||sum(Head)==0)&&sum(ismandatoryarg)~=numel(ismandatoryarg)
     errordlg('Please insert all loop values and nDet, nSource, nBoard, nBin'); Data = [];
+    fclose(fid);
     return;
 end
 
@@ -176,7 +183,8 @@ if(~isdatatypeargin)
 else
     datatry={datatype};
 end
-
+DataSize = [2,4,8];
+DataType = {'ushort','long','double'};
 for itry = 1:numel(datatry)
     if (~all(ismandatoryarg([m_nboard m_ndet m_nsource])) && SkipSub==0)
         frewind(fid);
@@ -217,19 +225,9 @@ for itry = 1:numel(datatry)
     NumLoop=CompiledHeader.LoopNum;
     info=dir(FilePath);
     datatype = datatry{itry};
-    if info.bytes == (HeadLen + prod(NumLoop)*(nBoard*nDet*nSource)*(SubLen+nBin*2))
-        datatype = 'ushort';
-        datasize = 2;
-        break;
-    end
-    if info.bytes == (HeadLen + prod(NumLoop)*(nBoard*nDet*nSource)*(SubLen+nBin*4))
-        datatype = 'uint32';
-        datasize = 4;
-        break;
-    end
-    if info.bytes == (HeadLen + prod(NumLoop)*(nBoard*nDet*nSource)*(SubLen+nBin*8))
-        datatype = 'double';
-        datasize = 8;
+    if info.bytes == (HeadLen + prod(NumLoop)*(nBoard*nDet*nSource)*(SubLen+nBin*DataSize(itry)))
+        datatype = DataType{itry};
+        datasize = DataSize(itry);
         break;
     end
     if(ForceReading==true&&isdatatypeargin)
@@ -252,9 +250,9 @@ for itry = 1:numel(datatry)
         waitfor(fh,'Tag');
         close(fh);
         
-        fclose(fid);
+        frewind(fid);
         if (~all(ismandatoryarg([m_nboard m_ndet m_nsource])) && SkipSub==0)
-            fid=fopen(FilePath,'rb');
+            %fid=fopen(FilePath,'rb');
             fread(fid,HeadLen,'uint8');
             out = false;
             BuffParms = []; Parms = [];
