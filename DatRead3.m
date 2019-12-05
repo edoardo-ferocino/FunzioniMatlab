@@ -86,7 +86,7 @@ CompiledHeader = FillHeader(Head);
 SubLen=CompiledHeader.SizeSubHeader;
 if SubLen == 0
     SkipSub = true;
-    if(~all(ismandatory([m_nboard m_ndet m_nsource])))
+    if(~all(ismandatoryarg([m_nboard m_ndet m_nsource])))
         errordlg('Please insert nSource, nDet, nBoard'); Data = [];
     end
     return;
