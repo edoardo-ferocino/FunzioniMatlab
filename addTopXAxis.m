@@ -33,7 +33,7 @@ function [nAxis] = addTopXAxis (varargin)
 %       addTopXAxis(axisH, 'expression', '-argu') % change the label of the ticks by their opposite
 %	
 %
-%  addTopXAxis('expression', '(k0.*10.^argu)', 'xLabStr', '$\lambda_{up}$ (cm)')
+%  addTopXAxis('expression', '(k0.*10.^argu)', 'xlabel', '$\lambda_{up}$ (cm)')
 %	will use the current axis (handle is not passed to the function), and will compute the new X-tick values according to
 %		x' = k0.*10.^argu;
 %	where |k0| is a variable whose value has to be set in the 'base' workspace.
@@ -45,9 +45,9 @@ function [nAxis] = addTopXAxis (varargin)
 %		Therefore, variables (like 'k0' in the second example) do not need to be evaluated anymore before being passed, 
 %		as long as they already exist in 'base' workspace. It should allow more complex expressions to be passed than previously.
 %		Example 2 then becomes
-%			addTopXAxis('expression', '(k0.*10.^argu)', 'xLabStr', '$\lambda_{up}$ (cm)')
+%			addTopXAxis('expression', '(k0.*10.^argu)', 'xlabel', '$\lambda_{up}$ (cm)')
 %		instead of
-%			addTopXAxis('expression', ['(', num2str(k0),'.*10.^argu)'], 'xLabStr', '$\lambda_{up}$ (cm)'
+%			addTopXAxis('expression', ['(', num2str(k0),'.*10.^argu)'], 'xlabel', '$\lambda_{up}$ (cm)'
 %		Drawback: the function create/assign a variable called 'axisH' in base workspace. Potential conflicts here ...
 %		* - properties are not case sensitive anymore
 %		* - 'exp' can be used instead of 'expression' for property name (following John D'Errico comment, if I understood it well ....)
@@ -67,10 +67,10 @@ expression = '';
 
 %% Process input parameters (if they exist)
 % if input parameters
-if length(varargin) > 0
-	if isstr(varargin{1}) % if no axes handle is passed ...
+if numel(varargin) > 0
+	if ischar(varargin{1}) % if no axes handle is passed ...
 		axisH = gca;
-		if (length(varargin) > 1)
+		if (numel(varargin) > 1)
 			properties = varargin(1:end);
 		end
 	else % else deal with passed axes handle
@@ -87,8 +87,8 @@ if length(varargin) > 0
 			switch lower(properties{2*iArg-1}) % modif V2 - suppress case sensitivity
 				case {'expression' , 'exp'} 
 					expression = properties{2*iArg};
-				% case 'xLabStr'
-				case 'xlabstr' % V2
+				% case 'xlabel'
+				case 'xlabel' % V2
 					xLabStr = properties{2*iArg};
 				% case 'xTickLabelFormat'
 				case 'xticklabelformat' % V2
@@ -108,18 +108,21 @@ end % if input parameters
 	set(axisH, 'units', 'normalized');
 	cAxis_pos = get(axisH, 'position');
 %% shift downward original axis a little bit
- 	cAxis_pos(2) = cAxis_pos(2)*0.8;
-	set(axisH, 'position', cAxis_pos);
+  	cAxis_pos(2) = cAxis_pos(2)*0.90;
+    cAxis_pos(4) = cAxis_pos(4)*0.95;
+    set(axisH, 'position', cAxis_pos);
 %% Make new axis
-	nAxis = subplot('position', [cAxis_pos(1), (cAxis_pos(2)+cAxis_pos(4))*1.007, cAxis_pos(3), 0.0001]);
+% 	nAxis = subplot('position', [cAxis_pos(1), (cAxis_pos(2)+cAxis_pos(4))*1.007, cAxis_pos(3), 0.0001]);
+    nAxis = axes('Position',cAxis_pos ,'Color','none');
 %% put new Xaxis on top
 	set(nAxis, 'xaxisLocation', 'top');
+    set(nAxis, 'YAxisLocation', 'right');
 %% Improve readability
 	%% delete Y label on new axis
 	set(nAxis, 'yTickLabel', []);
 	% remove box for original axis
 	set(axisH, 'box', 'off');
-	% remove grids
+  	% remove grids
 	set(nAxis, 'yGrid', 'off');
 	set(nAxis, 'xGrid', 'off');
 %% Set new Xaxis limits, ticks and subticks the same as original ones (by link) ...
@@ -128,12 +131,17 @@ end % if input parameters
 	set(nAxis, 'XMinorTick', get(axisH, 'XMinorTick'));
 	hlink = linkprop([nAxis, axisH], {'xLim','XTick','XMinorTick'});
 %% ... but replace ticks labels by new ones !!!
-	assignin('base', 'axisH', axisH)
-	set(nAxis, 'xtickLabel',  num2str(evalin('base', newXtickLabel_command), xTickLabelFormat));
+% 	assignin('base', 'axisH', axisH)
+% 	set(nAxis, 'xtickLabel',  num2str(evalin('base', newXtickLabel_command), xTickLabelFormat));
+    set(nAxis, 'xtickLabel',  num2str(eval(newXtickLabel_command), xTickLabelFormat));
 %% but label for new axis
-	if exist('xLabStr')
+	if exist('xLabStr','var')
 		xlabel(xLabStr)
 	end
 %% return current axis to original one (for further modification affecting original axes)
-	axes(axisH);
+	nAxis.Color = [1 1 1];
+    axisH.Color = 'none';
+    axes(axisH);
+    fh=ancestor(axisH,'figure');
+    fh.ToolBar = 'none';fh.MenuBar ='none';
 %	hlink = linkprop([nAxis, gca], {'xLim','XTick','XMinorTick'})

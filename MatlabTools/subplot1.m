@@ -39,8 +39,8 @@ function [H]=subplot1(M,N,varargin);
 %     By : Eran O. Ofek           June 2002
 %    URL : http://wise-obs.tau.ac.il/~eran/matlab.html
 %-------------------------------------------------------------------------
-MinDef      = [0.10 0.10];
-MaxDef      = [0.95 0.95];
+MinDef      = [0.05 0.05];
+MaxDef      = [0.98 0.98];
 GapDef      = [0.01 0.01];
 XTickLDef   = 'Margin';  
 YTickLDef   = 'Margin';  

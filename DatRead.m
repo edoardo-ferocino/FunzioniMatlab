@@ -95,6 +95,9 @@ end
 
 CompiledHeader = FillHeader(Head);
 SubLen=CompiledHeader.SizeSubHeader;
+if SubLen==0 && sum(Head)==0
+   SubLen = 204; 
+end
 if SubLen == 0
     SkipSub = true;
     if(~all(ismandatoryarg([m_nboard m_ndet m_nsource])))

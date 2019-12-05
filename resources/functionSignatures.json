@@ -1,0 +1,30 @@
+{
+"figure2":
+    {
+        "inputs":
+        [
+            {"name":"f", "kind":"ordered", "type":"matlab.ui.Figure"},
+            {"name":"n", "kind":"ordered", "type":"numeric"},
+            {"name":"opts", "kind":"properties", "type":"matlab.ui.Figure"}
+        ]
+    },
+"DatRead":
+{
+	"inputs":
+	[
+		{"name":"filename", "kind":"required", "type":"file=*.DAT"},
+		{"name":"loop5", "kind":"namevalue", "type":"numeric"},
+		{"name":"loop4", "kind":"namevalue", "type":"numeric"},
+		{"name":"loop3", "kind":"namevalue", "type":"numeric"},
+		{"name":"loop2", "kind":"namevalue", "type":"numeric"},
+		{"name":"loop1", "kind":"namevalue", "type":"numeric"},
+		{"name":"datatype", "kind":"namevalue", "type":["char","choices={'uint32','double','ushort'}"]},
+		{"name":"compilesub", "kind":"namevalue", "type":["logical","choices={0,1}"]},
+		{"name":"nSource", "kind":"namevalue", "type":"numeric"},
+		{"name":"nDet", "kind":"namevalue", "type":"numeric"},
+		{"name":"nBoard", "kind":"namevalue", "type":"numeric"},
+		{"name":"nBin", "kind":"namevalue", "type":"numeric"},
+		{"name":"forcereading", "kind":"namevalue", "type":["char","choices={'false','true'}"]}
+	]
+}
+}
