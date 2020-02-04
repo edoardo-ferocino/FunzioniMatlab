@@ -78,9 +78,10 @@ for iN = 1:NumArgin
         ismandatoryarg(m_nbin)=1;
     end
 end
+
 if any(ismandatoryarg([m_nboard m_ndet m_nsource]))
     if sum(ismandatoryarg([m_nboard m_ndet m_nsource]))~=numel(ismandatoryarg([m_nboard m_ndet m_nsource]))
-        errordlg('Please insert nDet, nSource, nBoard'); Data = [];
+        errordlg('Not all the necessary inputs. Please insert nDet, nSource, nBoard'); Data = [];
         return;
     end
 end
@@ -95,13 +96,19 @@ end
 
 CompiledHeader = FillHeader(Head);
 SubLen=CompiledHeader.SizeSubHeader;
+
+if CompiledHeader.SubHeader==0
+   SubLen = 0; 
+end
+   
 if SubLen==0 && sum(Head)==0
    SubLen = 204; 
 end
+
 if SubLen == 0
     SkipSub = true;
     if(~all(ismandatoryarg([m_nboard m_ndet m_nsource])))
-        errordlg('Please insert nSource, nDet, nBoard');
+        errordlg('Subheader missing: Please insert nSource, nDet, nBoard');
         fclose(fid);
         return;
     end

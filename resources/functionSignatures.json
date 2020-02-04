@@ -5,6 +5,7 @@
         [
             {"name":"f", "kind":"ordered", "type":"matlab.ui.Figure"},
             {"name":"n", "kind":"ordered", "type":"numeric"},
+            {"name":"uifigure", "kind":"namevalue", "type":["char","choices={'true','false'}"]},
             {"name":"opts", "kind":"properties", "type":"matlab.ui.Figure"}
         ]
     },

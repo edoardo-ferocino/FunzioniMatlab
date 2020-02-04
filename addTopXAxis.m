@@ -1,4 +1,4 @@
-function [nAxis] = addTopXAxis (varargin)
+function [nAxis,varargout] = addTopXAxis (varargin)
 
 % [nAxis] = addTopXAxis (axisH, properties ...)
 % Add an X-axis on top (additional to the one on bottom) of the figure,
@@ -129,7 +129,7 @@ end % if input parameters
 	set(nAxis, 'xlim', get(axisH, 'xlim'));
 	set(nAxis, 'XTick', get(axisH, 'XTick'));
 	set(nAxis, 'XMinorTick', get(axisH, 'XMinorTick'));
-	hlink = linkprop([nAxis, axisH], {'xLim','XTick','XMinorTick'});
+	hlink = linkprop([nAxis, axisH], {'xLim','XTick','XMinorTick','Position'});
 %% ... but replace ticks labels by new ones !!!
 % 	assignin('base', 'axisH', axisH)
 % 	set(nAxis, 'xtickLabel',  num2str(evalin('base', newXtickLabel_command), xTickLabelFormat));
@@ -144,4 +144,7 @@ end % if input parameters
     axes(axisH);
     fh=ancestor(axisH,'figure');
     fh.ToolBar = 'none';fh.MenuBar ='none';
-%	hlink = linkprop([nAxis, gca], {'xLim','XTick','XMinorTick'})
+    if nargout>1
+        varargout{1}= axisH;
+    end
+% 	hlink = linkprop([nAxis, gca], {'xLim','XTick','XMinorTick'});
