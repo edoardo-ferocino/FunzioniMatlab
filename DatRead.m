@@ -188,7 +188,7 @@ Head=fread(fid,HeadLen,'uint8');
 Data=zeros(NumLoop(5),NumLoop(4),NumLoop(3),NumLoop(2),NumLoop(1),NumBoard,NumDet,NumSource,NumBin);
 Sub=zeros(NumLoop(5),NumLoop(4),NumLoop(3),NumLoop(2),NumLoop(1),NumBoard,NumDet,NumSource,SubLen);
 if isCompileSubHeader == true
-    CompiledSub = CreateDummyStruct(NumLoop(5),NumLoop(4),NumLoop(3),NumLoop(2),NumLoop(1));
+    CompiledSub = CreateDummyStruct(NumLoop(5),NumLoop(4),NumLoop(3),NumLoop(2),NumLoop(1),NumBoard,NumDet,NumSource);
 end
 isbreakcond = false;
 
@@ -224,7 +224,7 @@ try
                                             break;
                                         end
                                         if isCompileSubHeader  == true
-                                            CompiledSub(il5,il4,il3,il2,il1,iB,iD,iS) = {FillSub(squeeze(Sub(il5,il4,il3,il2,il1,iB,iD,iS,:)))};
+                                            CompiledSub(il5,il4,il3,il2,il1,iB,iD,iS) = FillSub(squeeze(Sub(il5,il4,il3,il2,il1,iB,iD,iS,:)));
                                         end
                                     else
                                         BuffSub = 0;
@@ -280,28 +280,38 @@ output{3} = squeeze(Sub);
 if isCompileSubHeader == false
     output{4} = [];
 else
-    output{4} = squeeze(cell2mat(CompiledSub));
+    output{4} = squeeze(CompiledSub);
 end
 output{5} = Sub;
 output{6} = datasize;
 output{7} = datatype;
+if isCompileSubHeader == false
+    output{8} = [];
+else
+    output{8} = CompiledSub;
+end
 
 varargout = output(1:NumArgOut);
 end
 
-function TS = CreateDummyStruct(Loop5,Loop4,Loop3,Loop2,Loop1)
+function TS = CreateDummyStruct(Loop5,Loop4,Loop3,Loop2,Loop1,NumBoard,NumDet,NumSource)
 FieldNames = {'Geom','Source','Fiber','Det','Board','Coord','Pad','Xf','Yf','Zf','Rf','Xs','Ys','Zs','Rs','Rho','TimeNom','TimeEff'...
     'n','Loop','Acq','Page','RoiNum','RoiFirst','RoiLast','RoiLambda','RoiPower'};
-for ifields = 1:numel(FieldNames)
-    DS.(FieldNames{ifields}) = 0;
-end
-TS = cell.empty(Loop5,Loop4,Loop3,Loop2,0);
+TS = struct.empty(Loop5,Loop4,Loop3,Loop2,Loop1,NumBoard,NumDet,0);
 for i5 = 1:Loop5
     for i4 = 1:Loop4
         for i3 = 1:Loop3
             for i2 = 1:Loop2
                 for i1 = 1:Loop1
-                    TS(i5,i4,i3,i2,i1) = {DS};
+                    for iB = 1:NumBoard
+                        for iD = 1: NumDet
+                            for iS = 1:NumSource
+                                for ifields = 1:numel(FieldNames)
+                                TS(i5,i4,i3,i2,i1,iB,iD,iS).(FieldNames{ifields}) = 0;
+                                end
+                            end
+                        end
+                    end
                 end
             end
         end
