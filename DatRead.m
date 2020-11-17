@@ -216,7 +216,7 @@ try
                                             warnstr = strcat(warnstr,strcat('NumBoard: ',num2str(iB),'/',num2str(NumBoard),'\n'));
                                             warnstr = strcat(warnstr,strcat('NumDet: ',num2str(iD),'/',num2str(NumDet),'\n'));
                                             warnstr = strcat(warnstr,strcat('NumSource: ',num2str(iS),'/',num2str(NumSource),'\n'));
-                                            warnstr = strcat(warnstr,'Last valid point is the previous iteration');
+                                            warnstr = strcat(warnstr,'Last valid point is the previous iteration\n');
                                             warnstr = strcat(warnstr,'Output data will have the dimension specified in TRS settings (Header)');
                                             warning(warnstr,'');
                                             warning('backtrace','on')
