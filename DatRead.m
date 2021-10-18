@@ -36,19 +36,19 @@ end
 %% Checking inputs parameters
 for iN = 1:NumArgin
     switch lower(varargin{iN})
-        case 'loop5'
+        case 'loop1'
             loop5 = varargin{iN+1};
             ismandatoryarg(LOOP5)=1;
-        case 'loop4'
+        case 'loop2'
             loop4 = varargin{iN+1};
             ismandatoryarg(LOOP4)=1;
         case 'loop3'
             loop3 = varargin{iN+1};
             ismandatoryarg(LOOP3)=1;
-        case 'loop2'
+        case 'loop4'
             loop2 = varargin{iN+1};
             ismandatoryarg(LOOP2)=1;
-        case 'loop1'
+        case 'loop5'
             loop1 = varargin{iN+1};
             ismandatoryarg(LOOP1)=1;
         case 'datatype'
