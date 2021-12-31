@@ -199,7 +199,7 @@ try
                 for il2=1:NumLoop(2)
                     for il1=1:NumLoop(1)
                         for iB = 1:NumBoard
-                            for iD = 1: NumDet
+                            for iD = 1:NumDet
                                 for iS = 1:NumSource
                                     if SkipSub == false
                                         BuffSub = fread(fid,SubLen,'uint8');
@@ -407,6 +407,7 @@ while block(end)<length(Head)
                 Data = string(Data);
             end
             if strcmp(FieldNames{iF},'Date')
+                RawData = nonzeros(RawData);
                 Data = datetime(char(RawData'),'InputFormat','MM-dd-yyyy');
             end
             if strcmp(FieldNames{iF},'Time')
